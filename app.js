@@ -1,6 +1,7 @@
 $(function(){
 
 	let model = {
+		admin: false,
 		selected: null,
 		cats: [
 		{
@@ -48,6 +49,26 @@ $(function(){
 			model.selected.count += 1;
 			view.render();
 		},
+		updateCat: function(cat) {
+			console.log(cat);
+			model.selected.name = cat.name;
+			model.selected.src = cat.src;
+			model.selected.count = parseInt(cat.count);
+			model.cats[model.selected.id] = model.selected;
+			listView.render();
+			view.render();
+		},
+		isAdmin: function() {
+			return model.admin;
+		},
+		toggleAdmin: function() {
+			model.admin = !model.admin;
+			view.render();
+		},
+		disableAdmin: function() {
+			model.admin = false;
+			view.render();
+		},
 		init: function(){
 			model.selected = model.cats[0];
 			listView.init();
@@ -58,17 +79,49 @@ $(function(){
 	let view = {
 		render: function() {
 			let selectedCat = octopus.getSelectedCat();
+			let adminMode = octopus.isAdmin();
 			this.catName.textContent = selectedCat.name;
 			this.catSrc.src = selectedCat.src;
 			this.catCount.textContent = selectedCat.count;
+			if (adminMode) {
+				this.adminName.value = selectedCat.name;
+				this.adminPic.value = selectedCat.src;
+				this.adminCount.value = selectedCat.count;
+				this.adminForm.setAttribute('style', 'display: block');
+			}else {
+				this.adminForm.setAttribute('style', 'display: none');
+			}
 		},
 		init: function() {
 			this.catLink = document.querySelector('.cat__link');
 			this.catName = document.querySelector('.cat__name');
 			this.catSrc = document.querySelector('.cat__picture');
 			this.catCount = document.querySelector('.cat__counter');
+			this.adminBtn = document.querySelector('.admin__button');
+			this.adminForm = document.querySelector('.update__cat');
+			this.adminCancel = document.querySelector('.update__cancel');
+			this.adminSave = document.querySelector('.update__save');
+			this.adminBtn.addEventListener('click', function() {
+				octopus.toggleAdmin();
+			});
 			this.catLink.addEventListener('click', function() {
 				octopus.addCount();
+			});
+			this.adminCancel.addEventListener('click', function(e) {
+				e.preventDefault();
+				octopus.disableAdmin();
+			});
+			this.adminSave.addEventListener('click', function(e) {
+				e.preventDefault();
+				let cat = {
+					name: document.querySelector('input[name=update__name]').value,
+					src: document.querySelector('input[name=update__pic]').value,
+					count: document.querySelector('input[name=update__clicks]').value
+				}
+				octopus.updateCat(cat);
+			});
+			this.adminForm.addEventListener('submit', function(e) {
+				e.preventDefault();
 			});
 			this.render();
 		}
